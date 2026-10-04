@@ -35,7 +35,7 @@ InstallAhk2Exe() {
     SetWorkingDir tempDir
     
     TrayTip "正在下载 Ahk2Exe", "AutoHotkey"
-    url := GetGitHubReleaseAssetURL('AutoHotkey/Ahk2Exe')
+    url := GetGitHubReleaseAssetURL('snownico0722/Ahk2Exe')
     Download url, 'Ahk2Exe.zip'
     
     TrayTip "正在安装 Ahk2Exe", "AutoHotkey"
