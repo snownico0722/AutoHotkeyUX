@@ -9,9 +9,9 @@
 
 class EditorSelectionGui extends AutoHotkeyUxGui {
     __new(cmdLine) {
-        super.__new("Select an editor")
+        super.__new("选择编辑器")
         
-        lv := this.AddListMenu('vEds LV0x40 w300', ["Editor"])
+        lv := this.AddListMenu('vEds LV0x40 w300', ["编辑器"])
         this.IconList := il := IL_Create(,, true)
         lv.SetImageList(il, 0)
         for app in this.Apps := GetEditorApps() {
@@ -27,17 +27,17 @@ class EditorSelectionGui extends AutoHotkeyUxGui {
         x += w
         y += h
         
-        this.AddText('xm w' w ' y' y, "Command line")
+        this.AddText('xm w' w ' y' y, "命令行")
         this.AddEdit('xm wp r2 -WantReturn vCmd', cmdLine).OnEvent('Change', 'CmdChanged')
         
         this.AddText('xm h25 18 w' w)
         this.AddPicture('x56 Icon-81 w16 yp+4', "imageres.dll")
-        this.AddLink('x76 yp-1', "<a>Editors with AutoHotkey support</a>")
+        this.AddLink('x76 yp-1', "<a>支持 AutoHotkey 的编辑器</a>")
             .OnEvent('Click', 'ShowHelpEditors')
         
-        this.AddButton('xm w80', "&Browse").OnEvent('Click', 'Browse')
-        this.AddButton('Default yp w80 x' x - 160 - this.MarginY, "&OK").OnEvent('Click', 'Confirm')
-        this.AddButton('yp w80 x' x - 80, "&Cancel").OnEvent('Click', (c, *) => c.Gui.Hide())
+        this.AddButton('xm w80', "浏览(&B)").OnEvent('Click', 'Browse')
+        this.AddButton('Default yp w80 x' x - 160 - this.MarginY, "确定(&O)").OnEvent('Click', 'Confirm')
+        this.AddButton('yp w80 x' x - 80, "取消(&C)").OnEvent('Click', (c, *) => c.Gui.Hide())
         
         this["Eds"].OnEvent("ItemFocus", "EditorSelected")
         this.CmdChanged()
@@ -51,7 +51,7 @@ class EditorSelectionGui extends AutoHotkeyUxGui {
     }
     
     Browse(*) {
-        app := this.FileSelect(3,,, "Apps (*.exe; *.ahk)")
+        app := this.FileSelect(3,,, "应用程序 (*.exe; *.ahk)")
         if app = ""
             return
         this['Cmd'].Value := this.GetAppCmd(app)

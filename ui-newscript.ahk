@@ -8,7 +8,7 @@
 
 class NewScriptGui extends AutoHotkeyUxGui {
     __new(path:="") {
-        super.__new("New Script")
+        super.__new("新建脚本")
         
         SplitPath path,, &dir,, &name
         if this.ExplorerHwnd := WinActive("ahk_class CabinetWClass") {
@@ -21,23 +21,23 @@ class NewScriptGui extends AutoHotkeyUxGui {
         
         name := this.AddEdit('vName w272', name != "New AutoHotkey Script" ? name : "")
         static EM_SETCUEBANNER := 0x1501
-        SendMessage(EM_SETCUEBANNER, true, StrPtr("Untitled"), name)
+        SendMessage(EM_SETCUEBANNER, true, StrPtr("未命名"), name)
         
         static IconSize := SysGet(49) ; SM_CXSMICON
         
         static BrowseIcon := LoadPicture("imageres.dll", 'Icon-1025 w' IconSize, &imgtype)
-        this.AddIconButton('vBrowse x+0 yp-1 w28 hp+2', BrowseIcon, "&Browse")
+        this.AddIconButton('vBrowse x+0 yp-1 w28 hp+2', BrowseIcon, "浏览(&B)")
         .OnEvent('Click', 'Browse')
         
         this.AddEdit('vDir xm w300 r1 ReadOnly -TabStop', dir)
         
         static LVS_SHOWSELALWAYS := 8 ; Seems to have the opposite effect with Explorer theme, at least on Windows 11.
-        lv :=  this.AddListMenu("vLV xm w300 -" LVS_SHOWSELALWAYS, ["Name", "Desc", "Path", "Exec"])
+        lv :=  this.AddListMenu("vLV xm w300 -" LVS_SHOWSELALWAYS, ["名称", "说明", "路径", "执行"])
         lv.OnEvent('DoubleClick', 'DoubleClicked')
         lv.OnEvent('ContextMenu', 'RightClicked')
         
         deft := GetDefaultTemplate()
-        lv.Add(deft = "" ? 'Select Focus' : '', "Empty", "Clean slate")
+        lv.Add(deft = "" ? 'Select Focus' : '', "空白", "空白脚本")
         for ,t in this.Templates := GetScriptTemplates() {
             if ConfigRead('New\HideTemplate', t.name, false)
                 continue
@@ -48,11 +48,11 @@ class NewScriptGui extends AutoHotkeyUxGui {
         lv.GetPos(&x, &y, &w, &h)
         
         static DefaultsIcon := LoadPicture("imageres.dll", 'Icon-114 w' IconSize, &imgtype)
-        this.AddIconButton('vDefaults r1 w28 xm y' y + h + this.MarginY, DefaultsIcon, "&Defaults")
+        this.AddIconButton('vDefaults r1 w28 xm y' y + h + this.MarginY, DefaultsIcon, "默认设置(&D)")
         .OnEvent('Click', 'ChangeDefaults')
         
-        this.AddButton('vCreate yp w75 x150', "&Create").OnEvent('Click', 'Confirm')
-        this.AddButton('vEdit Default yp wp xm+225', "&Edit").OnEvent('Click', 'Confirm')
+        this.AddButton('vCreate yp w75 x150', "创建(&C)").OnEvent('Click', 'Confirm')
+        this.AddButton('vEdit Default yp wp xm+225', "编辑(&E)").OnEvent('Click', 'Confirm')
         if ConfigRead('New', 'DefaultButton', 'Edit') = 'Create'
             this['Create'].Opt('Default')
         
@@ -80,7 +80,7 @@ class NewScriptGui extends AutoHotkeyUxGui {
     }
     
     Browse(*) {
-        path := this.FileSelect('S', this['Dir'].Value "\" this['Name'].Value, this.Title, "Script Files (*.ahk)")
+        path := this.FileSelect('S', this['Dir'].Value "\" this['Name'].Value, this.Title, "AutoHotkey 脚本 (*.ahk)")
         if path = ""
             return
         SplitPath path, &name, &dir
@@ -93,16 +93,16 @@ class NewScriptGui extends AutoHotkeyUxGui {
         lv := this["LV"]
         
         m := Menu()
-        m.Add "Default to Create", setDefBtn, "Radio"
-        m.Add "Default to Edit", setDefBtn, "Radio"
-        m.Add "Stay open", toggleStayOpen
+        m.Add "默认操作：创建", setDefBtn.Bind("Create"), "Radio"
+        m.Add "默认操作：编辑", setDefBtn.Bind("Edit"), "Radio"
+        m.Add "保持窗口打开", toggleStayOpen
         if stayOpen := ConfigRead('New', 'StayOpen', false)
-            m.Check "Stay open"
+            m.Check "保持窗口打开"
         m.Add
-        m.Add "Set folder as default", (*) => SetDefaultDir(this['Dir'].Value)
+        m.Add "将此文件夹设为默认", (*) => SetDefaultDir(this['Dir'].Value)
         if this['Dir'].Value = GetDefaultDir()
-            m.Check "Set folder as default"
-        m.Add "Open templates folder", (*) => OpenTemplatesFolder()
+            m.Check "将此文件夹设为默认"
+        m.Add "打开模板文件夹", (*) => OpenTemplatesFolder()
         
         static DM_GETDEFID := 0x400
         m.Check (1 + (SendMessage(DM_GETDEFID,,, this) & 0xFFFF = DllCall('GetDlgCtrlID', 'ptr', this['Edit'].Hwnd))) "&"
@@ -113,10 +113,9 @@ class NewScriptGui extends AutoHotkeyUxGui {
         ControlFocus btn
         m.Show x, y + h
         
-        setDefBtn(itemname, itempos, *) {
-            itemname := SubStr(itemname, 12)
-            this[itemname].Opt('Default')
-            ConfigWrite(itemname, 'New', 'DefaultButton')
+        setDefBtn(btnName, *) {
+            this[btnName].Opt('Default')
+            ConfigWrite(btnName, 'New', 'DefaultButton')
         }
         toggleStayOpen(*) {
             ConfigWrite(stayOpen := !stayOpen, 'New', 'StayOpen')
@@ -126,14 +125,14 @@ class NewScriptGui extends AutoHotkeyUxGui {
     Confirm(btn, *) {
         lv := this['LV']
         if !index := lv.GetNext()
-            return MsgBox("You need to select a template first.",, 'icon!')
+            return MsgBox("请先选择一个模板。",, 'icon!')
         t := index = 1 ? '' : this.Templates[lv.GetText(index)]
         
         stayOpen := GetKeyState('Ctrl') || ConfigRead('New', 'StayOpen', false)
         
         DirCreate dir := this['Dir'].Value
         basename := this['Name'].Value
-        (basename != '') || basename := "Untitled"
+        (basename != '') || basename := "未命名"
         SubStr(basename, -4) = ".ahk" && basename := SubStr(basename, 1, -4)
         newPath := dir "\" basename ".ahk"
         while FileExist(newPath)
@@ -172,12 +171,12 @@ class NewScriptGui extends AutoHotkeyUxGui {
         
         m := Menu()
         if item > 1 {
-            m.Add "&Edit template", (*) => EditTemplate(t)
-            m.Add "&Hide template", hideTemplate
+            m.Add "编辑模板(&E)", (*) => EditTemplate(t)
+            m.Add "隐藏模板(&H)", hideTemplate
         }
-        m.Add "Set as &default", (*) => SetDefaultTemplate(t.name)
+        m.Add "设为默认(&D)", (*) => SetDefaultTemplate(t.name)
         if t.name = GetDefaultTemplate()
-            m.Check "Set as &default"
+            m.Check "设为默认(&D)"
         m.Show x, y
         
         hideTemplate(*) {
@@ -223,8 +222,7 @@ OpenTemplatesFolder() {
 GetUserTemplateFolder(checkAndPrompt:=false) {
     static dir := A_MyDocuments "\AutoHotkey\Templates"
     if checkAndPrompt && !FileExist(dir) {
-        if MsgBox("User-created templates should be placed in the following folder, "
-                "which does not yet exist:`n`n" dir "`n`nCreate it now?",, "YesNo") = "No"
+        if MsgBox("用户创建的模板应放在以下文件夹中，但该文件夹目前不存在：`n`n" dir "`n`n是否现在创建？",, "YesNo") = "No"
             return
         DirCreate dir
     }
@@ -250,7 +248,7 @@ GetScriptTemplates() {
         GetUserTemplateFolder()
     ]
     if FileExist(t := A_WinDir '\ShellNew\Template.ahk')
-        tmap["Legacy"] := NewScriptTemplate(t, "Legacy", "From " A_WinDir "\ShellNew")
+        tmap["Legacy"] := NewScriptTemplate(t, "Legacy", "来自 " A_WinDir "\ShellNew")
     for source in sources {
         loop files source "\*.ahk" {
             t := NewScriptTemplate(A_LoopFilePath)

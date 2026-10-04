@@ -9,7 +9,7 @@
 #NoTrayIcon
 #SingleInstance Force
 
-A_ScriptName := "AutoHotkey Setup"
+A_ScriptName := "AutoHotkey 安装程序"
 SetRegView 64
 ModifySetupGui.Show()
 
@@ -21,16 +21,16 @@ class ModifySetupGui extends AutoHotkeyUxGui {
         this.inst.ResolveInstallDir()
         versions := this.inst.GetComponents()
 
-        this.AddText(, "Remove which versions?")
-        iv := this.AddListView('vComponents Checked -Hdr R10 w248', ["Version"])
+        this.AddText(, "要移除哪些版本？")
+        iv := this.AddListView('vComponents Checked -Hdr R10 w248', ["版本"])
         iv.OnEvent('ItemCheck', 'Checked')
         for v, files in versions
             iv.Add(files.HasProp('superseded') ? 'Check' : '', v)
         
         anyChecked := iv.GetNext(0, 'C')
-        this.AddButton('vRemoveAll w120 ' (anyChecked ? '' : 'Default'), "Remove &all")
+        this.AddButton('vRemoveAll w120 ' (anyChecked ? '' : 'Default'), "全部移除(&A)")
         .OnEvent('Click', 'ClickedRemove')
-        this.AddButton('vRemove w120 yp ' (anyChecked ? 'Default' : 'Disabled'), "Remove &checked")
+        this.AddButton('vRemove w120 yp ' (anyChecked ? 'Default' : 'Disabled'), "移除选中项(&C)")
         .OnEvent('Click', 'ClickedRemove')
         
         if !this.inst.UserInstall && !A_IsAdmin {

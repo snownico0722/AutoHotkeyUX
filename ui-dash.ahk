@@ -17,9 +17,9 @@ DashRegKey := 'HKCU\Software\AutoHotkey\Dash'
 
 class AutoHotkeyDashGui extends AutoHotkeyUxGui {
     __new() {
-        super.__new("AutoHotkey Dash")
+        super.__new("AutoHotkey 控制面板")
 
-        lv := this.AddListMenu('vLV LV0x40 w250', ["Name", "Desc"])
+        lv := this.AddListMenu('vLV LV0x40 w250', ["名称", "说明"])
         lv.OnEvent("Click", "ItemClicked")
         lv.OnEvent("ItemFocus", "ItemFocused")
         lv.OnNotify(-155, "KeyPressed")
@@ -33,17 +33,17 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         addIcon(p*) =>(IL_Add(il, p*), IL_Add(il2, p*))
         
         lv.Add("Icon" addIcon(A_AhkPath, 2)
-            , "New script", "Create a script or manage templates")
+            , "新建脚本", "创建脚本或管理模板")
         lv.Add("Icon" addIcon("imageres.dll", -111)
-            , "Compile", "Open Ahk2Exe - convert .ahk to .exe")
+            , "编译", "打开 Ahk2Exe，将 .ahk 转换为 .exe")
         lv.Add("Icon" addIcon("imageres.dll", -99)
-            , "Help files (F1)")
+            , "帮助文件 (F1)")
         lv.Add("Icon" addIcon(A_ScriptDir '\inc\spy.ico', 1)
-            , "Window spy")
+            , "窗口侦探")
         lv.Add("Icon" addIcon("imageres.dll", -116)
-            , "Launch settings", "Configure how .ahk files are opened")
+            , "启动设置", "配置 .ahk 文件的打开方式")
         lv.Add("Icon" addIcon("notepad.exe", 1)
-            , "Editor settings", "Set your default script editor")
+            , "编辑器设置", "设置默认脚本编辑器")
         ; lv.Add("Icon" addIcon("mmc.exe")
         ;     , "Maintenance", "Repair settings or add/remove versions")
         ; lv.Add(, "Auto-start", "Run scripts automatically at logon")
@@ -54,21 +54,21 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         
         if !RegRead(DashRegKey, 'SuppressIntro', false) {
             this.SetFont('s12')
-            this.AddText('yp x+m', "Welcome!")
+            this.AddText('yp x+m', "欢迎！")
             this.SetFont('s9')
-            this.AddText('xp vIntroText', "This is the Dash. It provides access to tools, settings and help files.")
-            this.AddText('xp', "To learn how to use AutoHotkey, refer to:")
+            this.AddText('xp vIntroText', "这里是 AutoHotkey 控制面板，可快速访问工具、设置和帮助文件。")
+            this.AddText('xp', "要了解如何使用 AutoHotkey，请参阅：")
             this.AddLink('xp', "
             (
-            `s   • <a href="Program.htm">Using the Program</a>
-                • <a href="howto/WriteHotkeys.htm">How to Write Hotkeys</a>
-                • <a href="howto/SendKeys.htm">How to Send Keystrokes</a>
-                • <a href="howto/RunPrograms.htm">How to Run Programs</a>
-                • <a href="howto/ManageWindows.htm">How to Manage Windows</a>
-                • <a href="index.htm#Quick_Reference">Quick Reference</a>
+            `s   • <a href="Program.htm">使用 AutoHotkey</a>
+                • <a href="howto/WriteHotkeys.htm">如何编写热键</a>
+                • <a href="howto/SendKeys.htm">如何发送按键</a>
+                • <a href="howto/RunPrograms.htm">如何运行程序</a>
+                • <a href="howto/ManageWindows.htm">如何管理窗口</a>
+                • <a href="index.htm#Quick_Reference">快速参考</a>
             )").OnEvent('Click', 'LinkClicked')
             
-            checkBox := this.AddCheckbox('Checked', "Show this info next time")
+            checkBox := this.AddCheckbox('Checked', "下次仍显示此信息")
             checkBox.GetPos(,,, &hc)
             checkBox.Move(, h - hc)
             checkBox.OnEvent('Click', 'SetIntroPref')
@@ -96,7 +96,7 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         this.AddText(Format('vUpdateBanner Backgroundb8e2e7 x0 y{} w{} h30', gh, gw))
         
         ; SysLink controls do not support transparent backgrounds it seems
-        updateLink := this.AddLink('vUpdateLink yp+5 Backgroundb8e2e7', Format('<a>Update available to: {}</a>', this.newVersion))
+        updateLink := this.AddLink('vUpdateLink yp+5 Backgroundb8e2e7', Format('<a>可更新到：{}</a>', this.newVersion))
         updateLink.OnEvent('Click', 'UpdateVersion')
         updateLink.GetPos(,, &uw)
         updateLink.Move(gw // 2 - uw // 2)
@@ -133,19 +133,19 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
     
     ItemClicked(lv, item) {
         switch item && RegExReplace(lv.GetText(item), ' .*') {
-        case "New":
+        case "新建脚本":
             NewScriptGui.Show()
-        case "Compile":
+        case "编译":
             if WinExist("Ahk2Exe ahk_class AutoHotkeyGUI")
                 WinActivate
             else if FileExist(ROOT_DIR '\Compiler\Ahk2Exe.exe')
                 Run '"' ROOT_DIR '\Compiler\Ahk2Exe.exe"'
             else
                 Run Format('"{1}" /script "{2}\install-ahk2exe.ahk"', A_AhkPath, A_ScriptDir)
-        case "Help":
+        case "帮助文件":
             lv.GetItemPos(item, &x, &y,, &h)
             ShowHelpFile(x, y + h)
-        case "Window":
+        case "窗口侦探":
             try {
                 Run '"' A_MyDocuments '\AutoHotkey\WindowSpy.ahk"'
                 return
@@ -155,9 +155,9 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
             SendMessage WM_COMMAND, AHK_FILE_WINDOWSPY, 0, A_ScriptHwnd
             if WinWait("Window Spy ahk_class AutoHotkeyGUI",, 1)
                 WinActivate
-        case "Launch":
+        case "启动设置":
             LauncherConfigGui.Show()
-        case "Editor":
+        case "编辑器设置":
             DefaultEditorGui.Show()
         }
     }
@@ -206,7 +206,7 @@ ShowHelpFile(x?, y?) {
     
     m := Menu()
     if main.Count {
-        m.Add "Offline help", (*) => 0
+        m.Add "离线帮助", (*) => 0
         m.Disable "1&"
     }
     for , f in main {
@@ -217,18 +217,18 @@ ShowHelpFile(x?, y?) {
         subm := Menu()
         for , f in sub
             subm.Insert "1&", "v" f.Version, openIt.Bind(f.Path)
-        m.Add "More", subm
+        m.Add "更多", subm
     }
     
-    m.Add "Online help", (*) => 0
-    m.Disable "Online help"
+    m.Add "在线帮助", (*) => 0
+    m.Disable "在线帮助"
     prefix := main.Count ? "v" : "v&"
     m.Add prefix "1.1", (*) => Run("https://www.autohotkey.com/docs/v1/")
     m.Add prefix "2.0", (*) => Run("https://www.autohotkey.com/docs/v2/")
     
     if other.Count {
-        m.Add "Other files", (*) => 0
-        m.Disable "Other files"
+        m.Add "其他文件", (*) => 0
+        m.Disable "其他文件"
     }
     for f, t in other
         m.Add t, openIt.Bind(f)

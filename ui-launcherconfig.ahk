@@ -25,7 +25,7 @@ GetVersions() {
 
 class LauncherConfigGui extends AutoHotkeyUxGui {
     __new() {
-        super.__new("AutoHotkey Launch Config")
+        super.__new("AutoHotkey 启动设置")
         
         cmd := RegRead('HKCR\AutoHotkeyScript\shell\open\command',, '')
         usingLauncher := InStr(cmd, 'UX\launcher.ahk') != 0
@@ -40,33 +40,33 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         
         ; this.AddCheckbox("Checked", "Enable drag && drop on .ahk files")
         
-        this.AddRadio('vUseLauncher Checked' usingLauncher, "Auto-detect version when launching script")
+        this.AddRadio('vUseLauncher Checked' usingLauncher, "启动脚本时自动检测版本")
         .OnEvent('Click', 'ChangedMode')
-        this.AddRadio('vUseSpecific Checked' (!usingLauncher), "Run all scripts with a specific interpreter")
+        this.AddRadio('vUseSpecific Checked' (!usingLauncher), "始终使用指定解释器运行脚本")
         .OnEvent('Click', 'ChangedMode')
         
-        tab := this.AddTab('w0 h0 y+0 vTab -TabStop', ["Launcher", "Specific"])
+        tab := this.AddTab('w0 h0 y+0 vTab -TabStop', ["自动启动器", "指定解释器"])
         
         tab.UseTab(1)
-        this.AddText('xm yp+12 Section', "Preferred interpreter by major version")
-        this.AddDDL('vVersion1 y+3 w110 Choose1', ["Latest 1.x", versions[1]*])
+        this.AddText('xm yp+12 Section', "按主版本选择首选解释器")
+        this.AddDDL('vVersion1 y+3 w110 Choose1', ["最新 1.x", versions[1]*])
         .OnEvent('Change', "ChangedVersion")
         this.AddComboBox('vBuild1 yp w150', ["Unicode 64-bit", "Unicode 32-bit", "ANSI 32-bit"])
         .OnEvent('Change', 'ChangedBuild')
-        this.AddCheckBox('vUIA1 x+m yp+2 Disabled' (!versions.UIA), "UI Access")
+        this.AddCheckBox('vUIA1 x+m yp+2 Disabled' (!versions.UIA), "UI Access（UI 访问）")
         .OnEvent('Click', 'ChangedUIA')
-        this.AddDDL('vVersion2 xs w110 Choose1', ["Latest 2.x", versions[2]*])
+        this.AddDDL('vVersion2 xs w110 Choose1', ["最新 2.x", versions[2]*])
         .OnEvent('Change', 'ChangedVersion')
         this.AddComboBox('vBuild2 yp w150', ["64-bit", "32-bit"])
         .OnEvent('Change', 'ChangedBuild')
-        this.AddCheckBox('vUIA2 x+m yp+2 Disabled' (!versions.UIA), "UI Access")
+        this.AddCheckBox('vUIA2 x+m yp+2 Disabled' (!versions.UIA), "UI Access（UI 访问）")
         .OnEvent('Click', 'ChangedUIA')
-        this.AddText('xs y+m+8', "When detection fails")
-        this.AddDDL('vFallback y+3 w110 Choose3', ["Use v1.x", "Use v2.x", "Ask the user"])
+        this.AddText('xs y+m+8', "自动检测失败时")
+        this.AddDDL('vFallback y+3 w110 Choose3', ["使用 v1.x", "使用 v2.x", "询问用户"])
         .OnEvent('Change', "ChangedFallback")
-        this.AddCheckbox('vIdentify xs y+m+8 Checked', "Try to identify version based on syntax")
+        this.AddCheckbox('vIdentify xs y+m+8 Checked', "尝试根据语法识别版本")
         .OnEvent('Click', (c, *) => ConfigWrite(c.Value, 'Launcher', 'Identify'))
-        this.AddCheckbox('vLauncherUTF8 xs Checked', "Default to UTF-8 even for v1 scripts")
+        this.AddCheckbox('vLauncherUTF8 xs Checked', "即使是 v1 脚本也默认使用 UTF-8")
         .OnEvent('Click', (c, *) => ConfigWrite(c.Value, 'Launcher\v1', 'UTF8'))
         
         tab.UseTab(2)
@@ -77,14 +77,14 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
             exeBox.Text := f
         
         static BrowseIcon := LoadPicture("imageres.dll", 'Icon-1025 w' SysGet(49), &imgtype)
-        this.AddIconButton('vBrowse x+0 yp-1 w28 hp+2', BrowseIcon, "&Browse")
+        this.AddIconButton('vBrowse x+0 yp-1 w28 hp+2', BrowseIcon, "浏览(&B)")
         .OnEvent('Click', 'BrowseForExe')
         
-        this.AddCheckBox('vCustomUTF8 xm y+m+4 Hidden', "Default to UTF-8")
+        this.AddCheckBox('vCustomUTF8 xm y+m+4 Hidden', "默认使用 UTF-8")
         .OnEvent('Click', 'UpdateVerbs')
         
         tab.UseTab()
-        this.AddButton('vClose x292 w70 Default', "&Close")
+        this.AddButton('vClose x292 w70 Default', "关闭(&C)")
         .OnEvent('Click', (ctrl, *) => ctrl.Gui.Hide())
         
         ; size := 32 * A_ScreenDPI // 96
@@ -97,7 +97,7 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         Loop 2 {
             section := 'Launcher\v' A_Index
             v := ConfigRead(section, 'Version', '')
-            try this['Version' A_Index].Text := v || 'Latest ' A_Index '.x'
+            try this['Version' A_Index].Text := v || '最新 ' A_Index '.x'
             try this['Build' A_Index].Text := ConfigRead(section, 'Build', '')
             try this['UIA' A_Index].Value := ConfigRead(section, 'UIA', false)
             if this['Build' A_Index].Text = ""
@@ -130,7 +130,7 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         try
             exeVersion := FileGetVersion(exe)
         catch {
-            MsgBox "The selected EXE appears to be invalid.`n`nSpecifically: " exe,, 'Icon!'
+            MsgBox "所选 EXE 似乎无效。`n`n具体信息：" exe,, 'Icon!'
             return
         }
         if !this['CustomUTF8'].Visible && this['LauncherUTF8'].Value
@@ -151,7 +151,7 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         ConfigWrite(ctrl.Value = 3 ? '' : ctrl.Value, 'Launcher', 'Fallback')
     
     BrowseForExe(*) {
-        exe := this.FileSelect('3', this['ExePath'].Text, "Select an AutoHotkey.exe", "EXE Files (*.exe)")
+        exe := this.FileSelect('3', this['ExePath'].Text, "选择 AutoHotkey.exe", "EXE 文件 (*.exe)")
         if exe = ""
             return
         this['ExePath'].Text := exe

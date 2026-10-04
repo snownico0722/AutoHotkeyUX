@@ -45,7 +45,7 @@ Install_Main() {
         inst.%method%(params*)
     }
     catch as e {
-        inst.ErrorBox(e, "&Exit")
+        inst.ErrorBox(e, "退出(&E)")
         ExitApp 1
     }
 }
@@ -72,7 +72,7 @@ class Installation {
     UninstallCmd    => this.CmdStr('UX\ui-uninstall.ahk', ((A_IsAdmin && this.UserInstall) ? '/elevate' : ''))
     QUninstallCmd   => this.CmdStr('UX\install.ahk', '/uninstall /silent')
     
-    DialogTitle     => this.ProductName " Setup"
+    DialogTitle     => this.ProductName " 安装程序"
     DialogOptions   := 'Owner' WinExist(this.DialogTitle ' ahk_pid ' ProcessGetParent())
     
     FileItems       := [] ; [{Source, Dest}]
@@ -265,6 +265,8 @@ class Installation {
             
             this.AddUXFiles
             this.AddMiscFiles
+            if FileExist(this.SourceDir '\Compiler\Ahk2Exe.exe')
+                this.AddCompiler(this.SourceDir '\Compiler')
         }
         
         this.AddPostAction this.CreateWindowSpyRedirect
