@@ -22,7 +22,7 @@ InstallAhk2Exe() {
             WinExist('ahk_class #32770 ahk_pid ' ProcessExist()) &&
             SendMessage(0x160C,, true, 'Button1') ; BCM_SETSHIELD := 0x160C
         ), -25)
-        if MsgBox("Ahk2Exe is not installed, but we can download and install it for you.", "AutoHotkey", 'OkCancel') = 'Cancel'
+        if MsgBox("尚未安装 Ahk2Exe，可以现在为你下载并安装。", "AutoHotkey", 'OkCancel') = 'Cancel'
             ExitApp
         if !A_IsAdmin && !inst.UserInstall {
             Run Format('*RunAs "{1}" /restart /script "{2}" /Y', A_AhkPath, A_ScriptFullPath)
@@ -34,11 +34,11 @@ InstallAhk2Exe() {
     DirCreate tempDir
     SetWorkingDir tempDir
     
-    TrayTip "Downloading Ahk2Exe", "AutoHotkey"
+    TrayTip "正在下载 Ahk2Exe", "AutoHotkey"
     url := GetGitHubReleaseAssetURL('AutoHotkey/Ahk2Exe')
     Download url, 'Ahk2Exe.zip'
     
-    TrayTip "Installing Ahk2Exe", "AutoHotkey"
+    TrayTip "正在安装 Ahk2Exe", "AutoHotkey"
     DirCopy 'Ahk2Exe.zip', 'Compiler', true
     FileDelete 'Ahk2Exe.zip'
     
