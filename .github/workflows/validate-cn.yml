@@ -1,0 +1,65 @@
+name: Validate AutoHotkeyUX CN
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+      - cn-localization-initial
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+
+    env:
+      AHK_VERSION: "2.0.29"
+      AHK_SHA256: "b2d0200724a6b6ad22c965c939c5e5a2c64a35d1ccb455a3ca3f8ce415c5a296"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Download AutoHotkey v2
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = "$env:RUNNER_TEMP\AutoHotkey.zip"
+          Invoke-WebRequest "https://github.com/AutoHotkey/AutoHotkey/releases/download/v$env:AHK_VERSION/AutoHotkey_$env:AHK_VERSION.zip" -OutFile $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne $env:AHK_SHA256) {
+            throw "AutoHotkey ZIP SHA256 mismatch: $hash"
+          }
+          Expand-Archive $zip "$env:RUNNER_TEMP\AutoHotkey" -Force
+
+      - name: Validate localized entry scripts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ahk = Get-ChildItem "$env:RUNNER_TEMP\AutoHotkey" -Recurse -Filter AutoHotkey64.exe | Select-Object -First 1
+          if (-not $ahk) { throw "AutoHotkey64.exe was not found." }
+
+          $scripts = @(
+            'ui-setup.ahk',
+            'ui-uninstall.ahk',
+            'ui-dash.ahk',
+            'ui-newscript.ahk',
+            'ui-editor.ahk',
+            'ui-launcherconfig.ahk',
+            'install-ahk2exe.ahk',
+            'install.ahk'
+          )
+
+          foreach ($script in $scripts) {
+            $path = Join-Path $pwd $script
+            $err = Join-Path $env:RUNNER_TEMP (($script -replace '[\\/:*?"<>|]', '_') + '.err.txt')
+            $args = @("/ErrorStdOut=$err", '/validate', $path)
+            $p = Start-Process -FilePath $ahk.FullName -ArgumentList $args -Wait -PassThru
+            $errorText = if (Test-Path $err) { Get-Content $err -Raw } else { '' }
+            if ($p.ExitCode -ne 0 -or $errorText.Trim()) {
+              throw "Validation failed for $script (exit $($p.ExitCode))`n$errorText"
+            }
+          }
